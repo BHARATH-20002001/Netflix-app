@@ -4,12 +4,24 @@ from django.shortcuts import render
 
 from django.contrib.auth.decorators import login_required
 
+
 from django.contrib.auth import authenticate
 from django.contrib import auth
+
 
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.shortcuts import redirect
+
+
+from app.models import *
+
+@login_required(login_url='/')
+def index(request):
+    gen=Genre.objects.all()
+    movies = Movie.objects.all()
+    context = {'movies':movies,'genre':gen}
+    return render(request,'index.html',context)
 
 
 def login(request):
@@ -19,7 +31,7 @@ def login(request):
         user = authenticate(username=username,password=password)
         if user is not None: 
             auth.login(request,user)
-            return redirect('/index')
+            return redirect('app:index')
         else:
             messages.info(request,'Credentials Invalid !!')
             return redirect('/')
@@ -52,3 +64,17 @@ def signup(request):
         
     else:
         return render(request,'signup.html')
+    
+
+
+
+@login_required(login_url='/')
+def my_list(request):
+    gen = Genre.objects.all()
+    MO = Movielist.objects.filter(owner_user=request.user)
+    AMO = []
+    for i in MO:
+        AMO.append(i.movie)
+   
+    return render(request,'my_list.html',{'movies':AMO,'genre':gen})
+
